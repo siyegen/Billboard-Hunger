@@ -1,7 +1,7 @@
 Billboard Hunger
 =====================
 Purpose:
-Give 40 musical artists, what would be the quickest route to get
+Given 40 musical artists, what would be the quickest route to get
 from one of them to another?
 
 What's going on:
