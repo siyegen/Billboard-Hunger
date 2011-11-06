@@ -100,6 +100,8 @@ var AppView = Backbone.View.extend({
 		// Our start and end nodes
 		var start = this.graph.collection.at(0);
 		var end = this.graph.collection.at(2);
+		console.log('Starting at: ' + start.get('name'));
+		console.log('Ending at: ' + end.get('name'));
 
 		// Our 'set' of unvisited nodes, min-binheap to eliminate having to sort
 		// every step of the way
@@ -107,10 +109,34 @@ var AppView = Backbone.View.extend({
 			return e.get('cost');
 		}, 'min');
 
+		// Init all other bands to be 'unvisited'
 		this.graph.collection.each(function(band){
 			if (band.get('name') !== start.get('name')){
 				unvisited.push(band);
 			}
 		});
+
+		var current = start;
+		current.set({cost: 0});
+
+		while (unvisited.size() > 0){
+			current.bandList.each(function(band){
+				if ( !band.get('visited')){
+					var oldCost = band.get('cost');
+					var newCost = current.get('cost') + 1;
+					if (newCost < oldCost){
+						band.set({cost: newCost, parent: current});
+					}
+				}
+			});
+			current.set({visited: true});
+			current = unvisited.pop();
+		}
+		alert('fin!');
+		var pathNode = end;
+		while (pathNode !== null){
+			console.log(pathNode.get('name'));
+			pathNode = pathNode.get('parent');
+		}
 	}
 });
