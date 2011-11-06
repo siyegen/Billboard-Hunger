@@ -19,11 +19,22 @@ var Band = Backbone.Model.extend({
 		this.collection = new BandList();
 		
 	},
+	addBandName: function(bandName){
+		var band = new Band({name: bandName});
+		this.addBand(band);
+	},
 	addBand: function(band){
 		this.collection.add(band);		
 	},
+	addBandsName: function(listBandNames){
+		_.each(listBandNames, function(name){
+			addBandName(name);
+		});
+	},
 	addBands: function(listBands){
-		
+		_.each(listBands, function(band){
+			addBand(band);
+		});
 	},
 	clearBands: function(){
 		this.collection.each(function(band){
