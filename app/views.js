@@ -70,8 +70,9 @@ var AppView = Backbone.View.extend({
 	el: $('body'),
 	buttonTemplate: _.template($('#button-template').html()),
 	initialize: function(){
-		_.bindAll(this, 'render', 'buildGraph', 'findPath');
-		this.render();		
+		_.bindAll(this, 'render', 'buildGraph', 'findPath', 'toggleFind');
+		this.render();
+		this.toggleFind(true);
 	},
 	events: {
 		'click button#build-graph': 'buildGraph',
@@ -86,6 +87,14 @@ var AppView = Backbone.View.extend({
 		this.graph.pullBands();
 		this.graph.randomConnect();
 		this.$('.graph-view').html(this.graph.render().el);
+		this.toggleFind(false);
+	},
+	toggleFind: function(on){
+		if (on){
+			$('#find-path').attr("disabled", "disabled");
+		} else {
+			$('#find-path').removeAttr("disabled");
+		}
 	},
 	findPath: function(){
 		// Our start and end nodes
