@@ -1,7 +1,11 @@
-body {
-	
+.container-fluid {
+	/*padding-top: 80px;*/
 }
 
 .topbar {
-	position: static;
+	/*position: static;*/
+}
+
+body {
+	padding-top: 60px;
 }

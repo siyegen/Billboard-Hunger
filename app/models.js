@@ -16,7 +16,7 @@ var Band = Backbone.Model.extend({
 
 		// Holds our list of connected bands
 		// that this band is connected to
-		this.collection = new BandList();
+		this.bandList = new BandList();
 		
 	},
 	addBandName: function(bandName){
@@ -24,7 +24,7 @@ var Band = Backbone.Model.extend({
 		this.addBand(band);
 	},
 	addBand: function(band){
-		this.collection.add(band);		
+		this.bandList.add(band);		
 	},
 	addBandsName: function(listBandNames){
 		_.each(listBandNames, function(name){
@@ -37,9 +37,9 @@ var Band = Backbone.Model.extend({
 		});
 	},
 	clearBands: function(){
-		this.collection.each(function(band){
+		this.bandList.each(function(band){
 			band.destroy();
 		});
-		this.collection = new BandList();
+		this.bands = new BandList();
 	}
 });

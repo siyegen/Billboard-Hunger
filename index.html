@@ -17,19 +17,28 @@
 		</div>
 		<div class="container-fluid">
 			<div class="sidebar">
-				
+				<div class="well">
+				</div>
 			</div>
 			<div class="content">
-				<div class="graph-view"></div>
+				<div class="hero-unit">
+					<div class="graph-view "></div>
+				</div>
 			</div>
 		</div>
 
 		<script type="text/template" id="graph-template">
 			<ul>
 				<% _.each(bands, function(band) { %>
-					<li> <%= band.get('name') %> </li>
+					<li> 
+						<%= band.get('name') %>: 
+						<%= band.bandList.pluck('name') %> 
+					</li>
 				<% }); %>
 			</ul>
+		</script>
+		<script type="text/template" id="band-template">
+
 		</script>
 		<script type="text/template" id="button-template">
 			<button class="btn primary" id="<%= id %>"><%= name %></button>

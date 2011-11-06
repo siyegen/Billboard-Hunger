@@ -4,6 +4,7 @@ var GraphView = Backbone.View.extend({
 	tagName: 'div',
 	className: 'graph',
 	template: _.template($('#graph-template').html()),
+	maxConnections: 2,
 	initialize: function(){
 		_.bindAll(this, 'render', 'pullBands', 'randomConnect');		
 		this.collection = new BandList();
@@ -39,7 +40,20 @@ var GraphView = Backbone.View.extend({
 		});
 	},
 	randomConnect: function(){
-		
+		var that = this;
+		this.collection.each(function(band){
+			var links = Math.floor(1+Math.random()*that.maxConnections);
+			var chooseFrom = _.filter(that.collection.models, function(otherBand){
+				return (otherBand.get('name') !== band.get('name'));
+			});
+			for (var i=0; i< links; i++){				
+				var pick = Math.floor(Math.random()*(chooseFrom.length));
+				var toAdd = chooseFrom[pick];
+				band.addBand(toAdd);
+				chooseFrom.splice(pick,1);
+			}
+			console.log(band.bandList);
+		});
 	}
 });
 
@@ -62,6 +76,7 @@ var AppView = Backbone.View.extend({
 	buildGraph: function(){
 		this.graph = new GraphView();
 		this.graph.pullBands();
+		this.graph.randomConnect();
 		this.$('.graph-view').html(this.graph.render().el);
 	},
 	findPath: function(){
