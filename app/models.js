@@ -6,7 +6,7 @@ var BandList = Backbone.Collection.extend({
 
 // A Band object is our node object
 // if we think about this as a graph
-var Band = Backbone.Model.extend ({
+var Band = Backbone.Model.extend({
 	defaults: {
 		cost: Infinity,
 		visited: false,
@@ -15,14 +15,20 @@ var Band = Backbone.Model.extend ({
 	initialize: function(){
 
 		// Holds our list of connected bands
+		// that this band is connected to
 		this.collection = new BandList();
 		
 	},
-	function: addBand(band){
+	addBand: function(band){
+		this.collection.add(band);		
+	},
+	addBands: function(listBands){
 		
 	},
-	function: addBands(listBands){
-		
+	clearBands: function(){
+		this.collection.each(function(band){
+			band.destroy();
+		});
+		this.collection = new BandList();
 	}
-
 });

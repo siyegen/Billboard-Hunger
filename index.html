@@ -2,6 +2,9 @@
 	<head>
 		<title>Hunger for Artists (with a backbone)</title>
 		<link href="./css/bootstrap.min.css" rel="stylesheet" type="text/css" />
+		<link href="./css/style.css" rel="stylesheet" type="text/css" />
+
+		<script data-main="app/hunger-graph" src="lib/require.js"></script>
 	</head>
 
 	<body>
@@ -14,10 +17,20 @@
 		</div>
 		<div class="container-fluid">
 			<div class="sidebar">
+				
 			</div>
 			<div class="content">
+				<div id="default-bands"></div>
 			</div>
 		</div>
-	</body>
 
+		<script type="text/template" id="graph-template">
+			<ul>
+				<% _.each(bands, function(band) { %> <li><%= name %></li><% }); %>
+			</ul>
+		</script>
+		<script type="text/template" id="button-template">
+			<button class="btn primary" id="<%= id %>"><%= name %></button>
+		</script>
+	</body>
 </html>
