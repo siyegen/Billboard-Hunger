@@ -40,7 +40,7 @@ var GraphView = Backbone.View.extend({
 		});
 	},
 	getLynchBands: function(){
-		var lynchNum = Math.ceil(this.collection.size()/5);
+		var lynchNum = Math.ceil(this.collection.size()/3);
 		var lynchBands = [];
 		var order = _.range(this.collection.size());
 		// Using a Fisher-Yates shuffle to randomly choose bands
@@ -91,7 +91,6 @@ var GraphView = Backbone.View.extend({
 		if (!to.bandList.include(from)){
 			to.addBand(from);
 		}
-		console.log("----");
 	}
 });
 
@@ -130,6 +129,8 @@ var AppView = Backbone.View.extend({
 		// Our start and end nodes
 		var start = this.graph.collection.at(0);
 		var end = this.graph.collection.at(2);
+		var current = null;
+
 		console.log('Starting at: ' + start.get('name'));
 		console.log('Ending at: ' + end.get('name'));
 
@@ -138,37 +139,36 @@ var AppView = Backbone.View.extend({
 		var unvisited = new BinHeap(function(e){
 			return e.get('cost');
 		}, 'min');
+		start.set({cost: 0});
+		
+		this.graph.collection.each(function(band){
+			unvisited.push(band);
+		});
 
-		// Init all other bands to be 'unvisited'
-		// this.graph.collection.each(function(band){
-		// 	if (band.get('name') !== start.get('name')){
-		// 		unvisited.push(band);
-		// 	}
-		// });
+		while(unvisited.size() > 0){
+			current = unvisited.pop();
 
-		var current = start;
-		current.set({cost: 0});
+			if(current === end){
+				var pathNode = end;
+				while (pathNode !== null){
+					console.log(pathNode.get('name'));
+					pathNode = pathNode.get('parent');
+				}
+				break;
+			}
 
-		do {
 			current.bandList.each(function(band){
-				if ( !band.get('visited')){
-					var oldCost = band.get('cost');
-					var newCost = current.get('cost') + 1;
-					if (newCost < oldCost){
-						band.set({cost: newCost, parent: current});
+				if (!band.get('visited')){
+					var cost = current.get('cost') + 1;
+					if (cost < band.get('cost')){
+						band.set({cost: cost, parent: current});
+						unvisited.remove(band);
+						unvisited.push(band);
 					}
-					unvisited.push(band);
 				}
 			});
 			current.set({visited: true});
-			current = unvisited.pop();
-			
-		} while (unvisited.size() > 0);
-
-		var pathNode = end;
-		while (pathNode !== null){
-			console.log(pathNode.get('name'));
-			pathNode = pathNode.get('parent');
 		}
+
 	}
 });
