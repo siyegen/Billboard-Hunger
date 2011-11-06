@@ -12,7 +12,7 @@ path available.
 
 What I'm aiming for:
 Set list of artists, ability to add more.
-Randomlly generate connections, edit them in needed.
+Randomlly generate connections, edit them if needed.
 Traverse the graph, give some indication of what the shortest path is
 	and what other paths were considered.
 
