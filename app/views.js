@@ -46,14 +46,22 @@ var GraphView = Backbone.View.extend({
 			var chooseFrom = _.filter(that.collection.models, function(otherBand){
 				return (otherBand.get('name') !== band.get('name'));
 			});
-			for (var i=0; i< links; i++){				
+			while(band.bandList.size() < links){				
 				var pick = Math.floor(Math.random()*(chooseFrom.length));
 				var toAdd = chooseFrom[pick];
-				band.addBand(toAdd);
+				//band.addBand(toAdd);
+				that.connectBands(band, toAdd);
 				chooseFrom.splice(pick,1);
 			}
-			console.log(band.bandList);
 		});
+	},
+	connectBands: function(from, to){
+		if (!from.bandList.include(to)){
+			from.addBand(to);
+		}
+		if (!to.bandList.include(from)){
+			to.addBand(from);
+		}
 	}
 });
 
@@ -80,6 +88,20 @@ var AppView = Backbone.View.extend({
 		this.$('.graph-view').html(this.graph.render().el);
 	},
 	findPath: function(){
-		
+		// Our start and end nodes
+		var start = this.graph.collection.at(0);
+		var end = this.graph.collection.at(2);
+
+		// Our 'set' of unvisited nodes, min-binheap to eliminate having to sort
+		// every step of the way
+		var unvisited = new BinHeap(function(e){
+			return e.get('cost');
+		}, 'min');
+
+		this.graph.collection.each(function(band){
+			if (band.get('name') !== start.get('name')){
+				unvisited.push(band);
+			}
+		});
 	}
 });
