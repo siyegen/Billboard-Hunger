@@ -6,7 +6,7 @@ var GraphView = Backbone.View.extend({
 	template: _.template($('#graph-template').html()),
 	maxConnections: 2,
 	initialize: function(){
-		_.bindAll(this, 'render', 'pullBands', 'randomConnect');		
+		_.bindAll(this, 'render', 'pullBands', 'randomConnect', 'getLynchBands');		
 		this.collection = new BandList();
 	},
 	events: {
@@ -30,26 +30,55 @@ var GraphView = Backbone.View.extend({
 			async: false,
 			dataType: 'text',
 			success: function(data){
-				//$('#default-bands').html(data);
 				var bandArray = data.split("\n")
 				_.each(bandArray, function(bandName){
 					var band = new Band({name: bandName});
 					that.collection.add(band);										
 				});
+				console.log(that.collection);
 			}
 		});
 	},
+	getLynchBands: function(){
+		var lynchNum = Math.ceil(this.collection.size()/5);
+		var lynchBands = [];
+		var order = _.range(this.collection.size());
+		// Using a Fisher-Yates shuffle to randomly choose bands
+		for(var i=order.length-1; i>0; i--){
+			var ran = Math.floor(Math.random()*(i+1)); 
+			var temp = order[i]; order[i] = order[ran]; 
+			order[ran] = temp;
+		}
+		for(var i = 0; i < lynchNum; i++){
+			lynchBands.push(this.collection.at(order[i]));
+		}
+		return lynchBands;
+	},
 	randomConnect: function(){
 		var that = this;
+		// Lynch bands are used to insure we have a connected graph
+		// Each band will be connected to at least 1 Lynch Band
+		// And all Lynch bands will be connected to each other
+		// Thus insuring a path exists from any u to v
+		var lynchBands = that.getLynchBands();
+		_.each(lynchBands, function(band, index, list){
+			if (index < list.length-1){
+				that.connectBands(lynchBands[index], lynchBands[index+1]);
+			}
+		});
 		this.collection.each(function(band){
 			var links = Math.floor(1+Math.random()*that.maxConnections);
+			if (!_.include(lynchBands, band)){
+				var lynchRan = Math.floor(Math.random()*lynchBands.length);
+				that.connectBands(band, lynchBands[lynchRan]);
+				links--;				
+			}
 			var chooseFrom = _.filter(that.collection.models, function(otherBand){
-				return (otherBand.get('name') !== band.get('name'));
+				return (otherBand != band);
 			});
-			while(band.bandList.size() < links){				
+			while(band.bandList.size() <= links){				
 				var pick = Math.floor(Math.random()*(chooseFrom.length));
 				var toAdd = chooseFrom[pick];
-				//band.addBand(toAdd);
 				that.connectBands(band, toAdd);
 				chooseFrom.splice(pick,1);
 			}
@@ -62,6 +91,7 @@ var GraphView = Backbone.View.extend({
 		if (!to.bandList.include(from)){
 			to.addBand(from);
 		}
+		console.log("----");
 	}
 });
 
@@ -110,16 +140,16 @@ var AppView = Backbone.View.extend({
 		}, 'min');
 
 		// Init all other bands to be 'unvisited'
-		this.graph.collection.each(function(band){
-			if (band.get('name') !== start.get('name')){
-				unvisited.push(band);
-			}
-		});
+		// this.graph.collection.each(function(band){
+		// 	if (band.get('name') !== start.get('name')){
+		// 		unvisited.push(band);
+		// 	}
+		// });
 
 		var current = start;
 		current.set({cost: 0});
 
-		while (unvisited.size() > 0){
+		do {
 			current.bandList.each(function(band){
 				if ( !band.get('visited')){
 					var oldCost = band.get('cost');
@@ -127,12 +157,14 @@ var AppView = Backbone.View.extend({
 					if (newCost < oldCost){
 						band.set({cost: newCost, parent: current});
 					}
+					unvisited.push(band);
 				}
 			});
 			current.set({visited: true});
 			current = unvisited.pop();
-		}
-		alert('fin!');
+			
+		} while (unvisited.size() > 0);
+
 		var pathNode = end;
 		while (pathNode !== null){
 			console.log(pathNode.get('name'));
