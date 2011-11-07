@@ -24,7 +24,7 @@ var BandSidebarListView = Backbone.View.extend({
 		var bandSidebarView = new BandSideBarView({
 			model: band
 		});
-		this.$('ul').append(bandSidebarView.render().el);
+		$('ul', this.el).not('.child').append(bandSidebarView.render().el);
 	},
 	addBand: function(band){
 		
@@ -34,15 +34,30 @@ var BandSidebarListView = Backbone.View.extend({
 var BandSideBarView = Backbone.View.extend({
 	tagName: 'li',
 	className: 'band-sidebar',
+	showingConn: false,
 	initialize: function(){
-		_.bindAll(this, 'render');
+		_.bindAll(this, 'render', 'toggle');
 	},
 	events: {
-		
+		'click': 'toggle'
 	},
 	render: function(){
+		var lis = [];
+		this.model.bandList.each(function(band){
+			lis.push(this.make('li', {}, band.get('name')));
+		}, this);
+		var child = this.make('ul', {class: 'child'}, lis);
 		$(this.el).html(this.model.get('name')).attr({'id': this.model.id});
+		$(this.el).append(child);
 		return this;
+	},
+	toggle: function(){
+		if (this.showingConn){
+			this.$('ul.child').slideUp();
+		} else {
+			this.$('ul.child').slideDown();
+		}
+		this.showingConn = !this.showingConn;
 	}
 });
 
@@ -101,34 +116,33 @@ var GraphView = Backbone.View.extend({
 		return lynchBands;
 	},
 	randomConnect: function(){
-		var that = this;
 		// Lynch bands are used to insure we have a connected graph
 		// Each band will be connected to at least 1 Lynch Band
 		// And all Lynch bands will be connected to each other
 		// Thus insuring a path exists from any u to v
-		var lynchBands = that.getLynchBands();
+		var lynchBands = this.getLynchBands();
 		_.each(lynchBands, function(band, index, list){
 			if (index < list.length-1){
-				that.connectBands(lynchBands[index], lynchBands[index+1]);
+				this.connectBands(lynchBands[index], lynchBands[index+1]);
 			}
-		});
+		}, this);
 		this.collection.each(function(band){
-			var links = Math.floor(1+Math.random()*that.maxConnections);
+			var links = Math.floor(1+Math.random()*this.maxConnections);
 			if (!_.include(lynchBands, band)){
 				var lynchRan = Math.floor(Math.random()*lynchBands.length);
-				that.connectBands(band, lynchBands[lynchRan]);
+				this.connectBands(band, lynchBands[lynchRan]);
 				links--;				
 			}
-			var chooseFrom = _.filter(that.collection.models, function(otherBand){
+			var chooseFrom = _.filter(this.collection.models, function(otherBand){
 				return (otherBand != band);
 			});
 			while(band.bandList.size() <= links){				
 				var pick = Math.floor(Math.random()*(chooseFrom.length));
 				var toAdd = chooseFrom[pick];
-				that.connectBands(band, toAdd);
+				this.connectBands(band, toAdd);
 				chooseFrom.splice(pick,1);
 			}
-		});
+		}, this);
 	},
 	connectBands: function(from, to){
 		if (!from.bandList.include(to)){
@@ -175,6 +189,7 @@ var AppView = Backbone.View.extend({
 			collection: this.graph.collection
 		});
 		this.toggleFind(false);
+		$('.path').html("");
 	},
 	toggleFind: function(on){
 		if (on){

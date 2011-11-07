@@ -9,3 +9,11 @@
 body {
 	padding-top: 60px;
 }
+
+ul.child{
+	display: none;
+}
+
+li.band-sidebar {
+	cursor: pointer;
+}
