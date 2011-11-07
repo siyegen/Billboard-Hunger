@@ -10,7 +10,10 @@ var Band = Backbone.Model.extend({
 	defaults: {
 		cost: Infinity,
 		visited: false,
-		parent: null
+		parent: null,
+		x: null,
+		y: null,
+		drawn: false,
 	},
 	initialize: function(){
 
@@ -37,9 +40,6 @@ var Band = Backbone.Model.extend({
 		});
 	},
 	clearBands: function(){
-		this.bandList.each(function(band){
-			band.destroy();
-		});
-		this.bands = new BandList();
+		this.bandList = new BandList();
 	}
 });

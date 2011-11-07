@@ -61,6 +61,42 @@ var BandSideBarView = Backbone.View.extend({
 	}
 });
 
+var NodeView = Backbone.View.extend({
+	tagName: 'div',
+	className: 'band-node',
+	edges: 0,
+	maxDist: 175,
+	minDist: 75,
+	initialize: function(){
+		_.bindAll(this, 'render', 'showName', 'removeName');
+		var offSet = $('.graph-draw').offset();
+		this.refX = offSet.left;
+		this.refY = offSet.top;
+		this.edges = this.model.bandList.size();
+	},
+	events: {
+		'mouseenter': 'showName',
+		'mouseleave': 'removeName'		
+	},
+	render: function(){
+		var name = this.model.get('name').slice(0,2);
+		var x = (this.model.get('x'));
+		var y = (this.model.get('y'));
+		$(this.el).append(name).css({
+			'left': x,
+			'top': y
+		});
+		return this;
+		
+	},
+	showName: function(){
+		
+	},
+	removeName: function(){
+		
+	}
+});
+
 var GraphView = Backbone.View.extend({
 	tagName: 'div',
 	className: 'graph',
@@ -75,6 +111,29 @@ var GraphView = Backbone.View.extend({
 	},
 	render: function(){
 		$(this.el).html(this.template({bands: this.collection.models}));
+		var offset = $('.graph-draw').offset();
+		var refX = offset.left, refY = offset.top;
+		var x =0, y=0;
+		var rowCount = 1;
+		var colCount = 0;
+		this.collection.each(function(band){
+			x = colCount * 175 + (rowCount%2==0? 0 : 25);
+			colCount++;
+			if(x >= $('.graph-draw').width()){
+				x = 0;
+				y = rowCount * 150;
+				rowCount++;
+				colCount = 0;
+			}
+			if(y >= $('.graph-draw').height()){
+				$('.graph-draw').height($('.graph-draw').height()+200);
+			}
+			band.set({x: x + refX, y: y + refY});
+			var nodeView = new NodeView({
+				model: band
+			});
+			$('.graph-draw').append(nodeView.render().el);
+		}, this);
 		return this;
 	},
 	pullBands: function(){
@@ -181,6 +240,7 @@ var AppView = Backbone.View.extend({
 		this.$('.content').append(this.buttonTemplate({id: 'find-path', name: 'Find Path'}));
 	},
 	buildGraph: function(){
+		$('.graph-draw').html("");
 		this.graph = new GraphView();
 		this.graph.pullBands();
 		this.graph.randomConnect();
