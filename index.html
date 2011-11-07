@@ -18,11 +18,14 @@
 		<div class="container-fluid">
 			<div class="sidebar">
 				<div class="well">
+					<h5>Bands</h5>
+					<div class="band-list"></div>
 				</div>
 			</div>
 			<div class="content">
 				<div class="hero-unit">
-					<div class="graph-view "></div>
+					<div class="graph-view"></div>
+					<div class="path"></div>
 				</div>
 			</div>
 		</div>
@@ -36,9 +39,6 @@
 					</li>
 				<% }); %>
 			</ul>
-		</script>
-		<script type="text/template" id="band-template">
-
 		</script>
 		<script type="text/template" id="button-template">
 			<button class="btn primary" id="<%= id %>"><%= name %></button>

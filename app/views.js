@@ -1,5 +1,51 @@
 // Views for our app
 
+var BandSidebarListView = Backbone.View.extend({
+	el: $('.band-list'),
+	initialize: function(){
+		_.bindAll(this, 'render', 'addBand');
+
+		if (this.collection === undefined){
+			this.collection = new BandList();
+		}
+		this.collection.bind('add', this.appendBand);
+		this.render();
+	},
+	events: {
+		
+	},
+	render: function(){
+		$(this.el).html('<ul></ul>');
+		_(this.collection.models).each(function(band){
+			this.appendBand(band);
+		}, this);
+	},
+	appendBand: function(band){
+		var bandSidebarView = new BandSideBarView({
+			model: band
+		});
+		this.$('ul').append(bandSidebarView.render().el);
+	},
+	addBand: function(band){
+		
+	}
+});
+
+var BandSideBarView = Backbone.View.extend({
+	tagName: 'li',
+	className: 'band-sidebar',
+	initialize: function(){
+		_.bindAll(this, 'render');
+	},
+	events: {
+		
+	},
+	render: function(){
+		$(this.el).html(this.model.get('name')).attr({'id': this.model.id});
+		return this;
+	}
+});
+
 var GraphView = Backbone.View.extend({
 	tagName: 'div',
 	className: 'graph',
@@ -91,6 +137,15 @@ var GraphView = Backbone.View.extend({
 		if (!to.bandList.include(from)){
 			to.addBand(from);
 		}
+	},
+	showPath: function(current){
+		var pathNode = current;
+		var path = "";
+		while (pathNode !== null){
+			path += pathNode.get('name') + " -> ";
+			pathNode = pathNode.get('parent');
+		}
+		$('.path').html(path);
 	}
 });
 
@@ -116,6 +171,9 @@ var AppView = Backbone.View.extend({
 		this.graph.pullBands();
 		this.graph.randomConnect();
 		this.$('.graph-view').html(this.graph.render().el);
+		this.sideBar = new BandSidebarListView({
+			collection: this.graph.collection
+		});
 		this.toggleFind(false);
 	},
 	toggleFind: function(on){
@@ -149,11 +207,7 @@ var AppView = Backbone.View.extend({
 			current = unvisited.pop();
 
 			if(current === end){
-				var pathNode = end;
-				while (pathNode !== null){
-					console.log(pathNode.get('name'));
-					pathNode = pathNode.get('parent');
-				}
+				this.graph.showPath(current);
 				break;
 			}
 
