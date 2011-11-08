@@ -101,12 +101,18 @@ var NodeView = Backbone.View.extend({
 		this.element = this.paper.circle();
 		this.namePlate = this.paper.text();
 		this.el = this.element.node;
+		this.paths = [];
 		this.delegateEvents(this.events);
 	},
 	events: {
 		
 	},
 	render: function(){
+		_.each(this.paths, function(path){
+			path.remove();
+		}, this);
+		var x = this.model.get('x') + this.radius;
+		var y = this.model.get('y') + this.radius;
 		var stroke = this.travelled;
 		var state = this.model.get('state');
 		if (state === NodeState.start){
@@ -115,8 +121,8 @@ var NodeView = Backbone.View.extend({
 			stroke = this.end;
 		}
 		this.element.attr({
-			cx: this.model.get('x') + this.radius,
-			cy: this.model.get('y') + this.radius,
+			cx: x,
+			cy: y,
 			r: this.radius,
 			'stroke-width': 2,
 			fill: 'none',
@@ -124,12 +130,10 @@ var NodeView = Backbone.View.extend({
 			id: this.model.cid
 		});
 		this.namePlate.attr({
-			x: this.model.get('x')+this.radius,
-			y: this.model.get('y')+this.radius,
+			x: x,
+			y: y,
 			text: this.model.get('name')
 		});
-		/*this.paper.text(this.model.get('x')+this.radius, this.model.get('y')+this.radius, 
-			this.model.get('name'));*/
 		return this;
 	}
 });
@@ -163,6 +167,7 @@ var GraphView = Backbone.View.extend({
 		var xSpan = 133, ySpan = 85, xStart =0;
 		var canHeight = (ySpan+this.nodeRadius) * this.rows;
 		$('#graph-canvas').height(canHeight);
+		$('svg').height(canHeight);
 		this.collection.each(function(band, index){
 			var x = band.get('x') + (cCount*xSpan) - xStart;
 			var y = band.get('y') + (rCount*ySpan);
@@ -333,6 +338,7 @@ var AppView = Backbone.View.extend({
 		} else {
 			start = this.graph.collection.at(0);
 			start.changeState(NodeState.start);
+			this.graph.start = start;
 		}
 		if (this.graph.end !== null){
 			end = this.graph.end;
@@ -341,9 +347,11 @@ var AppView = Backbone.View.extend({
 			if(start === temp){
 				end = this.graph.collection.at(0);
 				end.changeState(NodeState.end);
+				this.graph.end = end;
 			} else {
 				end = temp;
 				end.changeState(NodeState.end);
+				this.graph.end = end;
 			}
 		}
 		var current = null;
@@ -369,7 +377,6 @@ var AppView = Backbone.View.extend({
 				this.graph.showPath(current);
 				break;
 			}
-
 			current.bandList.each(function(band){
 				if (!band.get('visited')){
 					var cost = current.get('cost') + 1;
@@ -382,6 +389,5 @@ var AppView = Backbone.View.extend({
 			});
 			current.set({visited: true});
 		}
-
 	}
 });
