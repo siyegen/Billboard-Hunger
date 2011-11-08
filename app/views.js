@@ -88,8 +88,6 @@ var BandSideBarView = Backbone.View.extend({
 });
 
 var NodeView = Backbone.View.extend({
-	tagName: 'div',
-	className: 'node',
 	edges: 0,
 	radius: 0,
 	start: '#46A546',
@@ -100,15 +98,15 @@ var NodeView = Backbone.View.extend({
 		this.paper = options.paper;
 		this.radius = options.radius;
 		this.model.bind('change', this.render);
+		this.element = this.paper.circle();
+		this.namePlate = this.paper.text();
+		this.el = this.element.node;
+		this.delegateEvents(this.events);
 	},
 	events: {
 		
 	},
 	render: function(){
-		var x = this.model.get('x') + this.radius;
-		var y = this.model.get('y') + this.radius;
-		console.log(x);
-		this.circle = this.paper.circle(x, y, this.radius);
 		var stroke = this.travelled;
 		var state = this.model.get('state');
 		if (state === NodeState.start){
@@ -116,7 +114,22 @@ var NodeView = Backbone.View.extend({
 		} else if (state === NodeState.end){
 			stroke = this.end;
 		}
-		this.circle.attr({id: this.model.cid, stroke: stroke});
+		this.element.attr({
+			cx: this.model.get('x') + this.radius,
+			cy: this.model.get('y') + this.radius,
+			r: this.radius,
+			'stroke-width': 2,
+			fill: 'none',
+			stroke: stroke,
+			id: this.model.cid
+		});
+		this.namePlate.attr({
+			x: this.model.get('x')+this.radius,
+			y: this.model.get('y')+this.radius,
+			text: this.model.get('name')
+		});
+		/*this.paper.text(this.model.get('x')+this.radius, this.model.get('y')+this.radius, 
+			this.model.get('name'));*/
 		return this;
 	}
 });
