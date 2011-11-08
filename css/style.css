@@ -14,6 +14,20 @@ ul.child{
 	display: none;
 }
 
-li.band-sidebar {
+span.b-name {
 	cursor: pointer;
+	margin-right: 5px;
+}
+
+span.loc {
+	cursor: pointer;
+	margin-right: 5px;
+}
+
+#graph-canvas {
+	width: 798px;
+	height: 400px;
+	border: 2px solid #aaa;
+	margin-bottom: 15px;
+	display: none;
 }

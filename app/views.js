@@ -2,12 +2,13 @@
 
 var BandSidebarListView = Backbone.View.extend({
 	el: $('.band-list'),
-	initialize: function(){
+	initialize: function(options){
 		_.bindAll(this, 'render', 'addBand');
 
 		if (this.collection === undefined){
 			this.collection = new BandList();
 		}
+		this.graph = options.graph;
 		this.collection.bind('add', this.appendBand);
 		this.render();
 	},
@@ -22,7 +23,8 @@ var BandSidebarListView = Backbone.View.extend({
 	},
 	appendBand: function(band){
 		var bandSidebarView = new BandSideBarView({
-			model: band
+			model: band,
+			graph: this.graph
 		});
 		$('ul', this.el).not('.child').append(bandSidebarView.render().el);
 	},
@@ -35,11 +37,15 @@ var BandSideBarView = Backbone.View.extend({
 	tagName: 'li',
 	className: 'band-sidebar',
 	showingConn: false,
-	initialize: function(){
-		_.bindAll(this, 'render', 'toggle');
+	initialize: function(options){
+		_.bindAll(this, 'render', 'toggle', 'setStart', 'setEnd');
+		this.model.bind('change', this.render);
+		this.graph = options.graph;
 	},
 	events: {
-		'click': 'toggle'
+		'click .b-name': 'toggle',
+		'click .s-start': 'setStart',
+		'click .s-end': 'setEnd'
 	},
 	render: function(){
 		var lis = [];
@@ -47,7 +53,11 @@ var BandSideBarView = Backbone.View.extend({
 			lis.push(this.make('li', {}, band.get('name')));
 		}, this);
 		var child = this.make('ul', {class: 'child'}, lis);
-		$(this.el).html(this.model.get('name')).attr({'id': this.model.id});
+		var state = this.model.get('state');
+		var label = this.make('span', {class: 'label b-name '+state, id: this.model.id}, this.model.get('name'));
+		var start = this.make('span', {class: 'label success loc s-start'}, 'S');
+		var end = this.make('span', {class: 'label important loc s-end'}, 'E');
+		$(this.el).html(label).append(start).append(end);
 		$(this.el).append(child);
 		return this;
 	},
@@ -58,6 +68,56 @@ var BandSideBarView = Backbone.View.extend({
 			this.$('ul.child').slideDown();
 		}
 		this.showingConn = !this.showingConn;
+	},
+	setStart: function(e){
+		if (this.graph.start !== null){
+			this.graph.start.changeState(NodeState.blank);
+		}
+		this.graph.start = null;
+		this.model.changeState(NodeState.start);
+		this.graph.start = this.model;
+	},
+	setEnd: function(e){
+		if (this.graph.end !== null){
+			this.graph.end.changeState(NodeState.blank);
+		}
+		this.graph.end = null;
+		this.model.changeState(NodeState.end);
+		this.graph.end = this.model;
+	}
+});
+
+var NodeView = Backbone.View.extend({
+	tagName: 'div',
+	className: 'node',
+	edges: 0,
+	radius: 0,
+	start: '#46A546',
+	end: '#C43C35',
+	travelled: '#BFBFBF',
+	initialize: function(options){
+		_.bindAll(this, 'render');
+		this.paper = options.paper;
+		this.radius = options.radius;
+		this.model.bind('change', this.render);
+	},
+	events: {
+		
+	},
+	render: function(){
+		var x = this.model.get('x') + this.radius;
+		var y = this.model.get('y') + this.radius;
+		console.log(x);
+		this.circle = this.paper.circle(x, y, this.radius);
+		var stroke = this.travelled;
+		var state = this.model.get('state');
+		if (state === NodeState.start){
+			stroke = this.start;
+		} else if (state === NodeState.end){
+			stroke = this.end;
+		}
+		this.circle.attr({id: this.model.cid, stroke: stroke});
+		return this;
 	}
 });
 
@@ -66,15 +126,54 @@ var GraphView = Backbone.View.extend({
 	className: 'graph',
 	template: _.template($('#graph-template').html()),
 	maxConnections: 2,
+	paper: null,
+	start: null,
+	end: null,
+	rows: 0,
+	cols: 6,
+	nodeRadius: 25,
 	initialize: function(){
-		_.bindAll(this, 'render', 'pullBands', 'randomConnect', 'getLynchBands');		
+		_.bindAll(this, 'render', 'pullBands', 'randomConnect', 'getLynchBands');
 		this.collection = new BandList();
+		if(this.paper !== null){
+			this.paper.clear();
+		}
+		$('#graph-canvas').show();
+		this.paper = new Raphael($('#graph-canvas')[0], 798, 400);
 	},
 	events: {
 		
 	},
 	render: function(){
 		$(this.el).html(this.template({bands: this.collection.models}));
+		var rCount =0, cCount=0;
+		var xSpan = 133, ySpan = 85, xStart =0;
+		var canHeight = (ySpan+this.nodeRadius) * this.rows;
+		$('#graph-canvas').height(canHeight);
+		this.collection.each(function(band, index){
+			var x = band.get('x') + (cCount*xSpan) - xStart;
+			var y = band.get('y') + (rCount*ySpan);
+			band.set({x: x, y: y});
+			var node = new NodeView({
+				model: band,
+				paper: this.paper,
+				radius: this.nodeRadius
+			});
+			node.render();
+			if(index !== 0 && index%(this.cols-1) === 0){
+				rCount++;
+				cCount = 0;
+				if (rCount%2 !== 0){
+					xStart = 80;
+					cCount++;
+				} else {
+					xStart = 0;
+				}
+			} else {
+				cCount++;
+			}	
+		}, this);
+		
 		return this;
 	},
 	pullBands: function(){
@@ -94,9 +193,10 @@ var GraphView = Backbone.View.extend({
 				var bandArray = data.split("\n")
 				_.each(bandArray, function(bandName){
 					var band = new Band({name: bandName});
-					that.collection.add(band);										
+					that.collection.add(band);
 				});
-				console.log(that.collection);
+				var size = that.collection.size();
+				that.rows = Math.ceil(size/that.cols);
 			}
 		});
 	},
@@ -154,12 +254,16 @@ var GraphView = Backbone.View.extend({
 	},
 	showPath: function(current){
 		var pathNode = current;
-		var path = "";
+		var path =  [];
 		while (pathNode !== null){
-			path += pathNode.get('name') + " -> ";
+			var state = pathNode.get('state');
+			if (state !== NodeState.start && state !== NodeState.end){
+				pathNode.changeState(NodeState.selected);
+			}
+			path.push(pathNode.get('name'));
 			pathNode = pathNode.get('parent');
 		}
-		$('.path').html(path);
+		$('.path').html(path.reverse().join(" -> "));
 	}
 });
 
@@ -177,16 +281,18 @@ var AppView = Backbone.View.extend({
 		'click button#find-path': 'findPath'
 	},
 	render: function(){
-		this.$('.content').append(this.buttonTemplate({id: 'build-graph', name: 'Build Graph'}));
-		this.$('.content').append(this.buttonTemplate({id: 'find-path', name: 'Find Path'}));
+		this.$('.control').append(this.buttonTemplate({id: 'build-graph', name: 'Build Graph'}));
+		this.$('.control').append(this.buttonTemplate({id: 'find-path', name: 'Find Path'}));
 	},
 	buildGraph: function(){
+		$('#graph-canvas').html("");
 		this.graph = new GraphView();
 		this.graph.pullBands();
 		this.graph.randomConnect();
 		this.$('.graph-view').html(this.graph.render().el);
 		this.sideBar = new BandSidebarListView({
-			collection: this.graph.collection
+			collection: this.graph.collection,
+			graph: this.graph
 		});
 		this.toggleFind(false);
 		$('.path').html("");
@@ -199,9 +305,34 @@ var AppView = Backbone.View.extend({
 		}
 	},
 	findPath: function(){
+		// cleanup the bands if we changed the start/end
+		this.graph.collection.each(function(band){
+			if (band === this.graph.start || band === this.graph.end){
+				band.clearAttr(false, false);
+			} else {
+				band.clearAttr(true, false);
+			}
+		}, this);
 		// Our start and end nodes
-		var start = this.graph.collection.at(0);
-		var end = this.graph.collection.at(2);
+		var start = null, end = null;
+		if (this.graph.start !== null){
+			start = this.graph.start;
+		} else {
+			start = this.graph.collection.at(0);
+			start.changeState(NodeState.start);
+		}
+		if (this.graph.end !== null){
+			end = this.graph.end;
+		} else {
+			var temp = this.graph.collection.at(this.graph.collection.size()-1);
+			if(start === temp){
+				end = this.graph.collection.at(0);
+				end.changeState(NodeState.end);
+			} else {
+				end = temp;
+				end.changeState(NodeState.end);
+			}
+		}
 		var current = null;
 
 		console.log('Starting at: ' + start.get('name'));

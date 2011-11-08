@@ -4,13 +4,24 @@ var BandList = Backbone.Collection.extend({
 	model: Band
 });
 
+var NodeState = {
+	blank: 'default',
+	start: 'success',
+	end: 'important',
+	selected: 'notice'
+};
+
 // A Band object is our node object
 // if we think about this as a graph
 var Band = Backbone.Model.extend({
 	defaults: {
 		cost: Infinity,
 		visited: false,
-		parent: null
+		parent: null,
+		x: 0,
+		y: 0,
+		state: NodeState.blank,
+		prevState: null
 	},
 	initialize: function(){
 
@@ -41,5 +52,33 @@ var Band = Backbone.Model.extend({
 			band.destroy();
 		});
 		this.bands = new BandList();
+	},
+	changeState: function(newState){
+		var lastState = this.get('state');
+		// toggle start/end off
+		var changeState = NodeState.blank;
+		if ((lastState === NodeState.start && newState === NodeState.start) ||
+			(lastState === NodeState.end && newState === NodeState.end)){
+		} else {
+			changeState = newState;
+		}
+		var states = {
+			prevState: lastState,
+			state: changeState
+		};
+		this.set(states);
+	},
+	clearAttr: function(clearState, isSilent){
+		var attr = {
+			cost: Infinity, parent: null, 
+			visited: false
+		};
+		if (clearState) {
+			attr.state = NodeState.blank;
+		}
+		if (isSilent){
+			attr.silent = true;
+		}
+		this.set(attr);
 	}
 });

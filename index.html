@@ -18,12 +18,17 @@
 		<div class="container-fluid">
 			<div class="sidebar">
 				<div class="well">
+					<div class="control"></div>
 					<h5>Bands</h5>
+					<span class="label success">Start Node</span>
+					<span class="label important">End Node</span>
 					<div class="band-list"></div>
 				</div>
 			</div>
 			<div class="content">
 				<div class="hero-unit">
+					<div id="graph-canvas">
+					</div>
 					<div class="graph-view"></div>
 					<div class="path"></div>
 				</div>
@@ -41,7 +46,7 @@
 			</ul>
 		</script>
 		<script type="text/template" id="button-template">
-			<button class="btn primary" id="<%= id %>"><%= name %></button>
+			<button class="btn primary small" id="<%= id %>"><%= name %></button>
 		</script>
 	</body>
 </html>
