@@ -11,8 +11,8 @@ well, we run though the algorithim and show the user the shortest
 path available.
 
 What I'm aiming for:
-Set list of artists, ability to add more.
-Randomlly generate connections, edit them if needed.
+Pull artists from 2 locations with different sizes
+Randomlly generate connections
 Traverse the graph, give some indication of what the shortest path is
 	and what other paths were considered.
 
