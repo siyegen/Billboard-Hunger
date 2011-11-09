@@ -213,7 +213,14 @@ var GraphView = Backbone.View.extend({
 		// need to do is determine it's x/y location based on a way
 		// that will allow us to show our edges as well, so we try
 		// to space them out as much as possible.
+		var yModArray = [0, 50, 70];
 		this.collection.each(function(band, index){
+			// What follows is some additional logic to help space our
+			// nodes apart.  This adds extra space in the y direction in
+			// a rotating order of 0, 50, 70
+			// change to mod with array?
+			var yModIndex = index%3;
+			yMod = yModArray[yModIndex];
 			// cCoutn and rCount are column/row count, and are where
 			// in the 'grid' our node will go, mostly
 			// xstart and ymod are spacers that move it around
@@ -231,17 +238,6 @@ var GraphView = Backbone.View.extend({
 			});
 			// render the node, it's now been place in the svg container
 			node.render();
-			// What follows is some additional logic to help space our
-			// nodes apart.  This adds extra space in the y direction in
-			// a rotating order of 0, 50, 70
-			// change to mod with array?
-			if (yMod == 0){
-				yMod = yMod + 50;
-			} else if (yMod == 50){
-				yMod = yMod + 20;
-			} else {
-				yMod = 0;
-			}
 			// This increments our rCount and cCount to help start new
 			// rows and keep at a set number of columns.
 			if (index !== 0 && index%(this.cols-1) === 0){
