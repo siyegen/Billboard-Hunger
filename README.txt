@@ -18,4 +18,4 @@ Traverse the graph, give some indication of what the shortest path is
 
 
 Feeling Lucky?:
-Draw using paperjs, make it 'purdy'
+Draw using raphael.js, make it 'purdy', do a barrel roll

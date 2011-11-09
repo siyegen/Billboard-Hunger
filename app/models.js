@@ -24,11 +24,9 @@ var Band = Backbone.Model.extend({
 		prevState: null
 	},
 	initialize: function(){
-
 		// Holds our list of connected bands
 		// that this band is connected to
-		this.bandList = new BandList();
-		
+		this.bandList = new BandList();		
 	},
 	addBandName: function(bandName){
 		var band = new Band({name: bandName});
@@ -80,5 +78,12 @@ var Band = Backbone.Model.extend({
 			attr.silent = true;
 		}
 		this.set(attr);
+	},
+	stateIsBlank: function(){
+		if (this.get('state') === NodeState.blank){
+			return true;
+		} else {
+			return false;
+		}
 	}
 });

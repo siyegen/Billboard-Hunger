@@ -3,7 +3,7 @@
 var BandSidebarListView = Backbone.View.extend({
 	el: $('.band-list'),
 	initialize: function(options){
-		_.bindAll(this, 'render', 'addBand');
+		_.bindAll(this, 'render');
 
 		if (this.collection === undefined){
 			this.collection = new BandList();
@@ -11,9 +11,6 @@ var BandSidebarListView = Backbone.View.extend({
 		this.graph = options.graph;
 		this.collection.bind('add', this.appendBand);
 		this.render();
-	},
-	events: {
-		
 	},
 	render: function(){
 		$(this.el).html('<ul></ul>');
@@ -27,9 +24,6 @@ var BandSidebarListView = Backbone.View.extend({
 			graph: this.graph
 		});
 		$('ul', this.el).not('.child').append(bandSidebarView.render().el);
-	},
-	addBand: function(band){
-		
 	}
 });
 
@@ -92,7 +86,6 @@ var NodeView = Backbone.View.extend({
 	radius: 0,
 	start: '#46A546',
 	end: '#C43C35',
-	travelled: '#BFBFBF',
 	initialize: function(options){
 		_.bindAll(this, 'render');
 		this.paper = options.paper;
@@ -101,19 +94,13 @@ var NodeView = Backbone.View.extend({
 		this.element = this.paper.circle();
 		this.namePlate = this.paper.text();
 		this.el = this.element.node;
-		this.paths = [];
+		this.coords = new Hash();
 		this.delegateEvents(this.events);
 	},
-	events: {
-		
-	},
 	render: function(){
-		_.each(this.paths, function(path){
-			path.remove();
-		}, this);
 		var x = this.model.get('x') + this.radius;
 		var y = this.model.get('y') + this.radius;
-		var stroke = this.travelled;
+		var stroke = this.defaultColor;
 		var state = this.model.get('state');
 		if (state === NodeState.start){
 			stroke = this.start;
@@ -125,7 +112,7 @@ var NodeView = Backbone.View.extend({
 			cy: y,
 			r: this.radius,
 			'stroke-width': 2,
-			fill: 'none',
+			fill: '#dddddd',
 			stroke: stroke,
 			id: this.model.cid
 		});
@@ -150,27 +137,32 @@ var GraphView = Backbone.View.extend({
 	cols: 6,
 	nodeRadius: 25,
 	initialize: function(){
-		_.bindAll(this, 'render', 'pullBands', 'randomConnect', 'getLynchBands');
+		_.bindAll(this, 'render', 'pullBands', 'randomConnect', 'getLynchBands', 'prepareGraph', 'drawEdges');
 		this.collection = new BandList();
 		if(this.paper !== null){
 			this.paper.clear();
 		}
+		this.paths = [];
 		$('#graph-canvas').show();
 		this.paper = new Raphael($('#graph-canvas')[0], 798, 400);
 	},
 	events: {
-		
+		'click svg': 'test'
+	},
+	test: function(e){
+		alert('moo');
+		console.log(this.paper.getElementByPoint(e.pageX, e.pageY));
 	},
 	render: function(){
 		$(this.el).html(this.template({bands: this.collection.models}));
 		var rCount =0, cCount=0;
-		var xSpan = 133, ySpan = 85, xStart =0;
+		var xSpan = 133, ySpan = 85, xStart =0, yMod = 0;
 		var canHeight = (ySpan+this.nodeRadius) * this.rows;
 		$('#graph-canvas').height(canHeight);
 		$('svg').height(canHeight);
 		this.collection.each(function(band, index){
 			var x = band.get('x') + (cCount*xSpan) - xStart;
-			var y = band.get('y') + (rCount*ySpan);
+			var y = band.get('y') + (rCount*ySpan) + yMod;
 			band.set({x: x, y: y});
 			var node = new NodeView({
 				model: band,
@@ -178,7 +170,14 @@ var GraphView = Backbone.View.extend({
 				radius: this.nodeRadius
 			});
 			node.render();
-			if(index !== 0 && index%(this.cols-1) === 0){
+			if (yMod == 0){
+				yMod = yMod + 20;
+			} else if (yMod == 20){
+				yMod = yMod + 10;
+			} else {
+				yMod = 0;
+			}
+			if (index !== 0 && index%(this.cols-1) === 0){
 				rCount++;
 				cCount = 0;
 				if (rCount%2 !== 0){
@@ -191,8 +190,37 @@ var GraphView = Backbone.View.extend({
 				cCount++;
 			}	
 		}, this);
+		this.drawEdges();
 		
 		return this;
+	},
+	drawEdges: function(){
+		_.each(this.paths, function(path){
+			path.remove();
+		});
+		_.each(this.edges.entrySet(), function(entry){
+			var start = this.collection.getByCid(entry.key);
+			var toDraw = entry.value;
+			var startX = start.get('x') + this.nodeRadius;
+			var startY = start.get('y') + this.nodeRadius;
+			_.each(toDraw, function(node){
+				var end = this.collection.getByCid(node);
+				var toX = end.get('x') + this.nodeRadius;
+				var toY = end.get('y') + this.nodeRadius;
+				var pathCommand = 'M'+startX+','+startY+' L'+toX+','+toY;
+				var stroke = '#BFBFBF';
+				if (!start.stateIsBlank() && !end.stateIsBlank()){
+					stroke = '#62CFFC';
+				}
+				var path = this.paper.path();
+				path.attr({
+					path: pathCommand,
+					stroke: stroke
+				});
+				path.toBack();
+				this.paths.push(path);
+			}, this);						
+		}, this);		
 	},
 	pullBands: function(){
 		// Why am I pulling this via ajax?  Well atm it's jut a static file
@@ -213,10 +241,26 @@ var GraphView = Backbone.View.extend({
 					var band = new Band({name: bandName});
 					that.collection.add(band);
 				});
-				var size = that.collection.size();
-				that.rows = Math.ceil(size/that.cols);
 			}
 		});
+	},
+	prepareGraph: function(){
+		var size = this.collection.size();
+		this.rows = Math.ceil(size/this.cols);
+		var edges = new Hash();
+		this.collection.each(function(band){
+			band.bandList.each(function(conn){
+				var edgeList = edges.get(band.cid);
+				if (edgeList === undefined){
+					edgeList = [];
+				}
+				if (edges.get(conn.id) === undefined){
+					edgeList.push(conn.cid);
+					edges.put(band.cid, edgeList);
+				}
+			});
+		}, this);
+		this.edges = edges;	
 	},
 	getLynchBands: function(){
 		var lynchNum = Math.ceil(this.collection.size()/3);
@@ -281,6 +325,7 @@ var GraphView = Backbone.View.extend({
 			path.push(pathNode.get('name'));
 			pathNode = pathNode.get('parent');
 		}
+		this.drawEdges();
 		$('.path').html(path.reverse().join(" -> "));
 	}
 });
@@ -307,6 +352,7 @@ var AppView = Backbone.View.extend({
 		this.graph = new GraphView();
 		this.graph.pullBands();
 		this.graph.randomConnect();
+		this.graph.prepareGraph();
 		this.$('.graph-view').html(this.graph.render().el);
 		this.sideBar = new BandSidebarListView({
 			collection: this.graph.collection,

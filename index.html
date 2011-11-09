@@ -39,8 +39,7 @@
 			<ul>
 				<% _.each(bands, function(band) { %>
 					<li> 
-						<%= band.get('name') %>: 
-						<%= band.bandList.pluck('name') %> 
+						<%= band.get('name') %>: <%= band.bandList.pluck('name')%>
 					</li>
 				<% }); %>
 			</ul>
