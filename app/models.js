@@ -1,9 +1,16 @@
-// Models and collections
+/* Models and Collections
+*  These are our models, they hold the data for
+*  what's going on, and in a real system would come
+*  from the 'backend', and would be manipulated and
+*  saved back to whatever persistance layer we'd use
+*/
 
+// Simple collection of bands
 var BandList = Backbone.Collection.extend({
 	model: Band
 });
 
+// Node state, used for readability
 var NodeState = {
 	blank: 'default',
 	start: 'success',
@@ -13,6 +20,8 @@ var NodeState = {
 
 // A Band object is our node object
 // if we think about this as a graph
+// There are a lot of helper methods here to be used if we
+// were to make this app more robust
 var Band = Backbone.Model.extend({
 	defaults: {
 		cost: Infinity,
@@ -52,6 +61,9 @@ var Band = Backbone.Model.extend({
 		this.bands = new BandList();
 	},
 	changeState: function(newState){
+		// Some sanity checks for changing the state of our model
+		// if we aren't changing states (last and new are the same)
+		// then we don't want to set states again.
 		var lastState = this.get('state');
 		// toggle start/end off
 		var changeState = NodeState.blank;
@@ -67,6 +79,8 @@ var Band = Backbone.Model.extend({
 		this.set(states);
 	},
 	clearAttr: function(clearState, isSilent){
+		// Method to help clear up attributes when
+		// reusing the band for multiple runs
 		var attr = {
 			cost: Infinity, parent: null, 
 			visited: false
@@ -80,6 +94,9 @@ var Band = Backbone.Model.extend({
 		this.set(attr);
 	},
 	stateIsBlank: function(){
+		// We mostly only care if the node/band is 'blank'
+		// or some value that actually means something, so this
+		// is just a helper/readability method to that end
 		if (this.get('state') === NodeState.blank){
 			return true;
 		} else {

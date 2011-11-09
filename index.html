@@ -17,21 +17,40 @@
 		</div>
 		<div class="container-fluid">
 			<div class="sidebar">
+				<div class="count-holder">
+
+				</div>
 				<div class="well">
 					<div class="control"></div>
+					<ul class="inputs-list">
+		                <li>
+		                	<label>
+		                    	<input type="radio" checked="" name="optionsRadios" value="normal">
+		                    	<span>Normal Size</span>
+		                  	</label>
+		                </li>
+		                <li>
+		                  	<label>
+		                    	<input type="radio" name="optionsRadios" value="full">
+		                    	<span>Full Size</span>
+		                  	</label>
+		                </li>
+		            </ul>
 					<h5>Bands</h5>
 					<span class="label success">Start Node</span>
 					<span class="label important">End Node</span>
+					
 					<div class="band-list"></div>
 				</div>
 			</div>
 			<div class="content">
 				<div class="hero-unit">
+					<div class="path"></div>
 					<div id="graph-canvas">
 					</div>
 					<div class="graph-view"></div>
-					<div class="path"></div>
 				</div>
+
 			</div>
 		</div>
 
@@ -39,13 +58,13 @@
 			<ul>
 				<% _.each(bands, function(band) { %>
 					<li> 
-						<%= band.get('name') %>: <%= band.bandList.pluck('name')%>
+						<%= band.get('name') %>: <%=band.bandList.pluck('name').join(" - ")%>
 					</li>
 				<% }); %>
 			</ul>
 		</script>
 		<script type="text/template" id="button-template">
-			<button class="btn primary small" id="<%= id %>"><%= name %></button>
+			<button class="btn small <%= type %>" id="<%= id %>"><%= name %></button>
 		</script>
 	</body>
 </html>
