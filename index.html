@@ -12,6 +12,17 @@
 			<div class="topbar-inner">
 				<div class="container-fluid">
 					<a href="#" class="brand">Billboard-Hunger</a>
+					<ul class="nav">
+						<li>
+							<a href="#controls-howto">Controls</a>
+						</li>
+						<li>
+							<a href="#whatisit">About</a>
+						</li>
+						<li>
+							<a href="#take-away">Lastly</a>
+						</li>
+					</ul>
 				</div>
 			</div>
 		</div>
@@ -50,7 +61,63 @@
 					</div>
 					<div class="graph-view"></div>
 				</div>
+				<section id="controls-howto">
+					<div class="page-header">
+						<h1>Controls/How To</h1>
+					</div>
+					<div class="row">
+						<div class="span16">
+							<p>
+								To get started either select 'normal' or 'full' size below the build/find buttons on the sidebar.  
+								At this point you can hit 'Build Graph' to build your graph, which will also randomly connect the 'nodes' (or
+								bands) together.  From here if you hit 'Find Path', it will select the first and last element as the start/end 
+								point and find the shortest path between them.  You can select a start or end point by clicking the 'S' or 'E'
+								button next to each band name.  If you only select one the algo will attempt to select the other for you.
+							</p>
+							<p>
+								Once you hit 'Find Path' the algo will find the shortest path from 'S' to 'E' and draw it on the canvas area.
+								The bands on the sidebar will change color to indicate that it was traveled through.  Clicking on the band names
+								here will show all the bands it's connected to, clicking again hides it.
+							</p>
+						</div>
+					</div>
+				</section>
+				<section id="whatisit">
+					<div class="page-header">
+						<h1>What is this?</h1>
+					</div>
+					<div class="row">
+						<div class="span16">
+							<p>
+								So, what is this?  Here's our setup: Given n number of bands that know one another (a knows b, b knows c, a 
+								doesn't know c), find the shortest path from a to c.  Taking a step back, we have a list of (either 11 or 40) 
+								bands that are randomly connected such that our graph is 'connected' (you can get from any node to another by 
+								passing through some series of nodes) and we are trying to find the shortest path from one node to the other, so 
+								we use dijkstra's algorithm by maintaining a set of 'unvisited' nodes and only inspecting the lowest-cost node
+								at each time.  what we are avoiding is making a useless step by contacting a node we could have directly contacted.
+								(i.e.: If a -> b, b -> c, and a -> c, it would be useless to ask b to contact c).
+							</p>
+						</div>
+					</div>
+				</section>
+				<section id="take-away">
+					<div class="page-header">
+						<h1>Closing Thoughts</h1>
+					</div>
+					<div class="row">
+						<div class="span16">
+							<p>
+								This turned out to be a fun task.  It was my second time working with Backbone.js and I really enjoy it, as
+								breaking the view/data apart is better than storing the data in the dom.  I miss that Backbone doesn't have a 
+								dedicated controller, so I think I'll investigate using one in the future to help maintain relations between
+								views in larger apps.  This was also my first time using Raphaeljs for drawing, which was fun.  SVG drawing 
+								seemed a little complex, but Raphael certainly made it more interesting and manageable.
 
+								I also learned that I know nothing of current music.
+							</p>
+						</div>
+					</div>
+				</section>
 			</div>
 		</div>
 

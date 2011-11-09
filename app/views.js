@@ -320,9 +320,14 @@ var GraphView = Backbone.View.extend({
 		// script.  Also a note, when running this locally Chrome does not like 
 		// for you to access files, so without '--allow-file-access-from-files'
 		// you can't even pull it down.
+		var which = $('input[name=optionsRadios]:checked').val();
+		var file = "./extra/default_bands.txt";
+		if (which === 'normal'){
+			file = "./extra/test_bands.txt";
+		}
 		var that = this;
 		$.ajax({
-			url: "./extra/test_bands.txt",
+			url: file,
 			async: false,
 			dataType: 'text',
 			success: function(data){

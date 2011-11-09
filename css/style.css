@@ -1,5 +1,6 @@
 body {
 	padding-top: 60px;
+	padding-bottom: 50px;
 }
 
 ul.child{
@@ -27,4 +28,8 @@ span.loc {
 .giant-text {
 	font-size: 150px;
 	color: a1a1a1;
+}
+
+.row {
+	padding-bottom: 20px;
 }
