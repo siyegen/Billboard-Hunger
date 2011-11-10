@@ -123,6 +123,8 @@ var NodeView = Backbone.View.extend({
 	radius: 0,
 	start: '#46A546',
 	end: '#C43C35',
+	defaultColor: '#cccccc',
+	selected: '62CFFC',
 	initialize: function(options){
 		_.bindAll(this, 'render');
 		this.paper = options.paper;
@@ -148,6 +150,8 @@ var NodeView = Backbone.View.extend({
 			stroke = this.start;
 		} else if (state === NodeState.end){
 			stroke = this.end;
+		} else if(state === NodeState.selected){
+			stroke = this.selected;
 		}
 		this.element.attr({
 			cx: x,
